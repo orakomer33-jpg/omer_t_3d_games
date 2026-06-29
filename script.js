@@ -1,48 +1,34 @@
-// Sahne, Kamera, Renderer kurulumu
+// Sahne Kurulumu
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x060810); // Senin 2D'deki arka plan rengin
 document.body.appendChild(renderer.domElement);
 
-// Basit bir ışık kaynağı
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 5, 5);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0x404040));
+// Işıklandırma (TUSAŞ markasına uygun keskin ışıklar)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(2, 5, 2);
+scene.add(directionalLight);
 
-// Kamera pozisyonu
-camera.position.z = 5;
-
-// KAAN TFX için basit bir low-poly gövde oluşturalım
-const geometry = new THREE.ConeGeometry(0.5, 2, 4); // Basit bir form
-const material = new THREE.MeshPhongMaterial({ color: 0x64748b, flatShading: true });
+// Kaan TFX Formu (Low-Poly)
+const geometry = new THREE.ConeGeometry(0.5, 2, 4);
+const material = new THREE.MeshPhongMaterial({ 
+    color: 0x64748b, // Kaan TFX'in gri tonu
+    flatShading: true 
+});
 const kaan = new THREE.Mesh(geometry, material);
-
-// Modelin duruşunu ayarlayalım
 kaan.rotation.x = Math.PI / 2;
 scene.add(kaan);
 
-// Şimdi biraz hareket katalım (Oyunun atmosferi için)
-function updateGame() {
-    kaan.rotation.z += 0.01; // Uçağın kendi etrafında hafif dönmesi
-}
+camera.position.z = 5;
 
-// Oyun döngüsü
+// Animasyon Döngüsü
 function animate() {
     requestAnimationFrame(animate);
-    
-    updateGame(); // Yeni eklediğimiz hareket fonksiyonunu çağır
-    
+    kaan.rotation.y += 0.02; // Kendi etrafında dönsün
     renderer.render(scene, camera);
 }
-
 animate();
-
-// Ekran boyutu değişince oyunu yeniden boyutlandır
-window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-});
