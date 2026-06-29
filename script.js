@@ -1,52 +1,61 @@
-// Sahne Kurulumu
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+let scene, camera, renderer, player, obstacles = [];
+let score = 0, gameActive = false;
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x060810); // Arka plan rengi
-document.body.appendChild(renderer.domElement);
+function init() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-// Işıklandırma
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(2, 5, 5);
-scene.add(directionalLight);
+    // Işık
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    
+    // Uçak (KAAN)
+    const geo = new THREE.ConeGeometry(0.5, 2, 4);
+    player = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: 0x64748b }));
+    player.position.y = -3;
+    scene.add(player);
 
-// Kaan TFX Profil Tasarımı (Shape)
-const shape = new THREE.Shape();
-shape.moveTo(0, 1);      // Burun
-shape.lineTo(0.8, -0.5); // Sağ kanat altı
-shape.lineTo(0.4, -0.8); // Gövde altı
-shape.lineTo(-0.4, -0.8);// Gövde altı
-shape.lineTo(-0.8, -0.5);// Sol kanat altı
-shape.lineTo(0, 1);      // Buruna dönüş
+    camera.position.z = 5;
+    animate();
+}
 
-const extrudeSettings = { depth: 0.3, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 };
-const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-const material = new THREE.MeshPhongMaterial({ color: 0x64748b, flatShading: true });
-const kaan = new THREE.Mesh(geometry, material);
+function startGame() {
+    document.getElementById('menu').style.display = 'none';
+    gameActive = true;
+}
 
-scene.add(kaan);
+function spawnObstacle() {
+    if (!gameActive) return;
+    // Düşman Unsurlar (2D'deki gibi)
+    const types = ['wall', 'radar', 'enemy'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    let geo = type === 'wall' ? new THREE.BoxGeometry(1, 0.2, 0.2) : new THREE.SphereGeometry(0.5);
+    let color = type === 'wall' ? 0xed3435 : 0x22c55e;
+    
+    let obs = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: color }));
+    obs.position.set(Math.random() * 6 - 3, 5, 0);
+    scene.add(obs);
+    obstacles.push({ mesh: obs, type: type });
+}
 
-camera.position.z = 5;
-
-// Animasyon Döngüsü
 function animate() {
     requestAnimationFrame(animate);
-    
-    // Uçağın hafif dönmesi
-    kaan.rotation.z += 0.01; 
-    
+    if (gameActive) {
+        obstacles.forEach((o, i) => {
+            o.mesh.position.y -= 0.05;
+            if (o.mesh.position.y < -5) {
+                scene.remove(o.mesh);
+                obstacles.splice(i, 1);
+                score++;
+                document.getElementById('score').innerText = "Skor: " + score;
+            }
+        });
+        if (Math.random() < 0.03) spawnObstacle();
+    }
     renderer.render(scene, camera);
 }
 
-// Pencere boyutu değişimi
-window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-});
-
-animate();
+init();
