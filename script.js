@@ -15,9 +15,26 @@ scene.add(new THREE.AmbientLight(0x404040));
 // Kamera pozisyonu
 camera.position.z = 5;
 
+// KAAN TFX için basit bir low-poly gövde oluşturalım
+const geometry = new THREE.ConeGeometry(0.5, 2, 4); // Basit bir form
+const material = new THREE.MeshPhongMaterial({ color: 0x64748b, flatShading: true });
+const kaan = new THREE.Mesh(geometry, material);
+
+// Modelin duruşunu ayarlayalım
+kaan.rotation.x = Math.PI / 2;
+scene.add(kaan);
+
+// Şimdi biraz hareket katalım (Oyunun atmosferi için)
+function updateGame() {
+    kaan.rotation.z += 0.01; // Uçağın kendi etrafında hafif dönmesi
+}
+
 // Oyun döngüsü
 function animate() {
     requestAnimationFrame(animate);
+    
+    updateGame(); // Yeni eklediğimiz hareket fonksiyonunu çağır
+    
     renderer.render(scene, camera);
 }
 
